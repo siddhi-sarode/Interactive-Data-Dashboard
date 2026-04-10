@@ -1,82 +1,79 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 
-st.set_page_config(page_title="Dashboard", layout="wide")
+# -------------------- PAGE SETTINGS --------------------
+st.set_page_config(page_title="E-Commerce Dashboard", layout="wide")
 
 st.title("🛒 Indian E-commerce Dashboard")
+st.markdown("### 📊 Data Analysis & Insights")
 
-# Load cleaned data
-df = pd.read_csv('data/cleaned_data.csv')
+# -------------------- LOAD DATA --------------------
+df = pd.read_csv("data/cleaned_data.csv")
 
-# Show dataset
-st.subheader("Dataset Preview")
-st.write(df.head())
+# Convert date
+df['Order Date'] = pd.to_datetime(df['Order Date'])
 
-# Sidebar filters
-st.sidebar.header("Filters")
-region = st.sidebar.selectbox("Select State", df['Region'].unique())
+# -------------------- SIDEBAR --------------------
+st.sidebar.title("🔍 Filters")
+
+state = st.sidebar.selectbox("Select State", df['Region'].unique())
 category = st.sidebar.selectbox("Select Category", df['Category'].unique())
 
-filtered_df = df[(df['Region'] == region) & (df['Category'] == category)]
+filtered_df = df[(df['Region'] == state) & (df['Category'] == category)]
 
-# KPI Cards
+# -------------------- KPI --------------------
+total_sales = filtered_df['Sales'].sum()
+total_profit = filtered_df['Profit'].sum()
+total_orders = filtered_df.shape[0]
+
 col1, col2, col3 = st.columns(3)
 
-col1.metric("Total Sales", f"₹{int(filtered_df['Sales'].sum())}")
-col2.metric("Total Profit", f"₹{int(filtered_df['Profit'].sum())}")
-col3.metric("Total Orders", filtered_df.shape[0])
+col1.metric("💰 Total Sales", f"₹{total_sales:,.0f}")
+col2.metric("📈 Total Profit", f"₹{total_profit:,.0f}")
+col3.metric("📦 Total Orders", total_orders)
 
-# KPI Cards
-col1.metric("💰 Total Sales", f"₹{int(filtered_df['Sales'].sum())}")
-col2.metric("📈 Total Profit", f"₹{int(filtered_df['Profit'].sum())}")
-col3.metric("📦 Total Orders", filtered_df.shape[0])
+st.markdown("---")
 
+# -------------------- MONTHLY SALES --------------------
+monthly_sales = filtered_df.groupby(
+    filtered_df['Order Date'].dt.to_period('M')
+)['Sales'].sum()
 
-# 🔥 ADD FROM HERE ↓↓↓
+monthly_sales.index = monthly_sales.index.astype(str)
 
-# Monthly Sales Trend
-st.subheader("📈 Monthly Sales Trend")
+fig1, ax1 = plt.subplots()
+monthly_sales.plot(ax=ax1, color='orange', marker='o', linewidth=2)
 
-df['Month'] = pd.to_datetime(df['Order Date']).dt.to_period('M')
-monthly_sales = df.groupby('Month')['Sales'].sum()
+ax1.set_title("Monthly Sales Trend", fontsize=14, fontweight='bold')
+ax1.set_xlabel("Month")
+ax1.set_ylabel("Sales")
+ax1.grid(True, linestyle='--', alpha=0.5)
 
-fig3, ax3 = plt.subplots(figsize=(10,5))
+# -------------------- TOP PRODUCTS --------------------
+top_products = filtered_df.groupby('Product Name')['Sales'].sum().sort_values(ascending=False).head(5)
 
-monthly_sales.plot(ax=ax3, marker='o', linewidth=2)
-
-ax3.set_title("Monthly Sales Trend")
-ax3.set_xlabel("Month")
-ax3.set_ylabel("Sales")
-ax3.grid(True)
-
-st.pyplot(fig3)
-# Top 5 Products
-st.subheader("🏆 Top 5 Products")
-
-top_products = df.groupby('Product Name')['Sales'].sum().sort_values(ascending=False).head(5)
-
-fig4, ax4 = plt.subplots()
-top_products.plot(kind='bar', ax=ax4)
-st.pyplot(fig4)
-
-
-# Correlation Heatmap
-st.subheader("🔥 Correlation Heatmap")
-
-fig5, ax5 = plt.subplots()
-sns.heatmap(df[['Sales','Profit','Quantity','Discount']].corr(), annot=True, cmap='coolwarm', ax=ax5)
-st.pyplot(fig5)
-
-# Chart 1
-st.subheader("Sales by Sub-Category")
-fig, ax = plt.subplots()
-filtered_df.groupby('Sub-Category')['Sales'].sum().plot(kind='bar', ax=ax)
-st.pyplot(fig)
-
-# Chart 2
-st.subheader("Profit vs Sales")
 fig2, ax2 = plt.subplots()
-sns.scatterplot(x='Sales', y='Profit', data=filtered_df, ax=ax2)
-st.pyplot(fig2)
+top_products.plot(kind='bar', ax=ax2, color='green')
+
+ax2.set_title("Top 5 Products", fontsize=14, fontweight='bold')
+ax2.set_ylabel("Sales")
+
+# -------------------- LAYOUT --------------------
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("📈 Monthly Sales Trend")
+    st.pyplot(fig1)
+
+with col2:
+    st.subheader("🏆 Top 5 Products")
+    st.pyplot(fig2)
+
+# -------------------- DATA TABLE --------------------
+st.subheader("📋 Dataset Preview")
+st.dataframe(filtered_df)
+
+# -------------------- FOOTER --------------------
+st.markdown("---")
+st.markdown("Made with ❤️ using Streamlit | DIY Internship Project")
