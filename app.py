@@ -17,14 +17,25 @@ df['Order Date'] = pd.to_datetime(df['Order Date'])
 # ------------------- SIDEBAR FILTERS -------------------
 st.sidebar.header("🔎 Filters")
 
+if st.sidebar.button("🔄 Reset Filters"):
+   st.experimental_rerun()
+
 # State filter
 state = st.sidebar.selectbox("Select State", df['State'].unique())
 
 # Category filter
 category = st.sidebar.selectbox("Select Category", df['Category'].unique())
 
+st.write(f"📍 Selected State: {state} | Category: {category}")
+
 # Apply filters
 df = df[(df['State'] == state) & (df['Category'] == category)]
+
+if df.empty:
+    st.warning("⚠️ No data available for selected filters")
+    st.stop()
+
+st.success("✅ Dashboard updated based on selected filters")
 
 # ------------------- DATE FILTER -------------------
 min_date = df['Order Date'].min()
