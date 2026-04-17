@@ -2,7 +2,29 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# CUSTOM CSS
+st.markdown("""
+<style>
+.main {
+    background-color: #f5f7fa;
+}
+h1, h2, h3 {
+    color: #2c3e50;
+}
+.stMetric {
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+}
+.stSidebar {
+    background-color: #eaf2f8;
+}
+</style>
+""", unsafe_allow_html=True)
+
 st.set_page_config(page_title="Dashboard", layout="wide")
+st.success("✅ Dashboard loaded successfully")
 st.markdown("### 🚀 Interactive E-Commerce Analytics Dashboard")
 
 # Load data
@@ -10,8 +32,8 @@ df = pd.read_csv("data/dataset.csv", encoding="latin1")
 df['Order Date'] = pd.to_datetime(df['Order Date'])
 
 # Title
-st.title("🏠 E-Commerce Dashboard")
-
+st.title("🛒 E-Commerce Analytics Dashboard")
+st.markdown("### 📊 Clean & Interactive Data Visualization")
 st.write("📊 Overview of Sales Data")
 
 # KPIs
